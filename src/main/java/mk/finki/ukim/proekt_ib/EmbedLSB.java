@@ -83,7 +83,7 @@ public class EmbedLSB {
         return paddedValue.toString();
     }
 
-    private static void EncodeMessageBinaryInPixels(Pixel[] pixels, String[] messageBinary) { //for every character of the message take 3 pixels
+    private static void EncodeMessageBinaryInPixels(Pixel[] pixels, String[] messageBinary) {
         int pixelIndex = 0;
         boolean isLastCharacter = false;
         for(int i = 0; i < messageBinary.length; i++) {
@@ -110,7 +110,7 @@ public class EmbedLSB {
             pixels[pixels.length-1].setColor(GetNewPixelColor(pixelRGBBinary));
         }else {
             char[] messageBinaryChars = new char[] {messageBinary.charAt(messageBinaryIndex), messageBinary.charAt(messageBinaryIndex+1), '0'};
-            String[] pixelRGBBinary = GetPixelsRGBBinary(pixels[pixels.length-1], messageBinaryChars); //get new RGBs
+            String[] pixelRGBBinary = GetPixelsRGBBinary(pixels[pixels.length-1], messageBinaryChars);
             pixels[pixels.length-1].setColor(GetNewPixelColor(pixelRGBBinary));
         }
     }
@@ -128,7 +128,7 @@ public class EmbedLSB {
 
     private static String ChangePixelBinary(String pixelBinary, char messageBinaryChar) {
         StringBuilder sb = new StringBuilder(pixelBinary);
-        sb.setCharAt(pixelBinary.length()-1, messageBinaryChar); //change the last bit of every R, G and B
+        sb.setCharAt(pixelBinary.length()-1, messageBinaryChar);
         return sb.toString();
     }
 
