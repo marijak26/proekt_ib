@@ -78,25 +78,21 @@ public class ProektIbApplication {
         String choice = sc.nextLine();
 
         if (choice.equalsIgnoreCase("Y")) {
-            System.out.println("Recipient email for IMAGE:");
-            String toImage = sc.nextLine();
-
-            System.out.println("Recipient email for KEY INFO:");
-            String toKey = sc.nextLine();
-
-            emailService.sendMessageWithAttachment(
-                    toImage,
-                    "🖼️ Image with hidden message",
-                    "Hi,\n\nHere’s the image with the hidden message. Use the separate email for the key.\n\n—App",
-                    new File(output_path)
-            );
+            System.out.println("Recipient email for IMAGE + KEY INFO:");
+            String recipient = sc.nextLine();
 
             String keyInfo = "Cipher algorithm: AES\n" +
                     "Secret key bytes: " + Arrays.toString(secretKeyBytes) + "\n\n" +
-                    "Provide these details when extracting.";
-            emailService.sendSimpleMessage(toKey, "🔐 Key Info", keyInfo);
+                    "Use this info to extract the message from the image.";
 
-            System.out.println("Emails sent successfully!");
+            emailService.sendMessageWithAttachment(
+                    recipient,
+                    "Image with hidden message + Key Info",
+                    "Hi,\n\nHere’s the image with the hidden message.\n\n" + keyInfo + "\n\n—App",
+                    new File(output_path)
+            );
+
+            System.out.println("Email sent successfully!");
         }
     }
 
