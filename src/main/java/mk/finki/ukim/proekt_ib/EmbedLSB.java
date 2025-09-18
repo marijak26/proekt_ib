@@ -50,14 +50,13 @@ public class EmbedLSB {
 
     private static String[] ConvertMessageToBinary(String message) {
         int[] messageInAscii = ConvertMessageToAscii(message);
-        String[] binary = ConvertAsciiToBinary(messageInAscii);
-        return binary;
+        return ConvertAsciiToBinary(messageInAscii);
     }
 
     private static int[] ConvertMessageToAscii(String message) {
         int[] messageCharactersInAscii = new int[message.length()];
         for(int i = 0; i < message.length(); i++) {
-            int asciiValue = (int) message.charAt(i);
+            int asciiValue = message.charAt(i);
             messageCharactersInAscii[i] = asciiValue;
         }
         return messageCharactersInAscii;
@@ -76,7 +75,7 @@ public class EmbedLSB {
         StringBuilder paddedValue = new StringBuilder("00000000");
         int offSet = 8 - value.length();
         if (offSet < 0) {
-            offSet = 0; // Ensure offset is not negative
+            offSet = 0;
         }
         for(int i = 0 ; i < value.length(); i++) {
             paddedValue.setCharAt(i+offSet, value.charAt(i));
@@ -97,32 +96,32 @@ public class EmbedLSB {
         }
     }
 
-    private static void ChangePixelsColor(String messageBinary, Pixel[] pixels, boolean isLastCharacter) { //for every array of 3 pixels (without the last one), takes 3 bits from the character
+    private static void ChangePixelsColor(String messageBinary, Pixel[] pixels, boolean isLastCharacter) {
         int messageBinaryIndex = 0;
         for(int i =0; i < pixels.length-1; i++) {
-            char[] messageBinaryChars = new char[] {messageBinary.charAt(messageBinaryIndex), messageBinary.charAt(messageBinaryIndex+1), messageBinary.charAt(messageBinaryIndex+2)}; //devide characteр in 3 parts
+            char[] messageBinaryChars = new char[] {messageBinary.charAt(messageBinaryIndex), messageBinary.charAt(messageBinaryIndex+1), messageBinary.charAt(messageBinaryIndex+2)};
             String[] pixelRGBBinary = GetPixelsRGBBinary(pixels[i], messageBinaryChars);
             pixels[i].setColor(GetNewPixelColor(pixelRGBBinary));
             messageBinaryIndex = messageBinaryIndex + 3;
         }
-        if(!isLastCharacter) { // for the last pixel, take the last 2 bits from the character and give them to R and G. For B give 1
+        if(!isLastCharacter) {
             char[] messageBinaryChars = new char[] {messageBinary.charAt(messageBinaryIndex), messageBinary.charAt(messageBinaryIndex+1), '1'};
             String[] pixelRGBBinary = GetPixelsRGBBinary(pixels[pixels.length-1], messageBinaryChars);
             pixels[pixels.length-1].setColor(GetNewPixelColor(pixelRGBBinary));
-        }else { // for the last pixel, take the last 2 bits from the character and give them to R and G. For B give 0
+        }else {
             char[] messageBinaryChars = new char[] {messageBinary.charAt(messageBinaryIndex), messageBinary.charAt(messageBinaryIndex+1), '0'};
             String[] pixelRGBBinary = GetPixelsRGBBinary(pixels[pixels.length-1], messageBinaryChars); //get new RGBs
-            pixels[pixels.length-1].setColor(GetNewPixelColor(pixelRGBBinary)); // set new color
+            pixels[pixels.length-1].setColor(GetNewPixelColor(pixelRGBBinary));
         }
     }
-    //change the LSB of the pixel
-    private static String[] GetPixelsRGBBinary(Pixel pixel, char[] messageBinaryChars) { // messageBinaryChars - 3 bits from the message
+
+    private static String[] GetPixelsRGBBinary(Pixel pixel, char[] messageBinaryChars) {
         String[] pixelRGBBinary = new String[3];
-        //R
-        pixelRGBBinary[0] = ChangePixelBinary(Integer.toBinaryString(pixel.getColor().getRed()), messageBinaryChars[0]); // messageBinaryChars[0] - first bit od the 3bit substring
-        //G
+
+        pixelRGBBinary[0] = ChangePixelBinary(Integer.toBinaryString(pixel.getColor().getRed()), messageBinaryChars[0]);
+
         pixelRGBBinary[1] = ChangePixelBinary(Integer.toBinaryString(pixel.getColor().getGreen()), messageBinaryChars[1]);
-        //B
+
         pixelRGBBinary[2] = ChangePixelBinary(Integer.toBinaryString(pixel.getColor().getBlue()), messageBinaryChars[2]);
         return pixelRGBBinary;
     }
@@ -133,13 +132,13 @@ public class EmbedLSB {
         return sb.toString();
     }
 
-    private static Color GetNewPixelColor(String[] colorBinary) { // get new color
+    private static Color GetNewPixelColor(String[] colorBinary) {
         return new Color(Integer.parseInt(colorBinary[0], 2), Integer.parseInt(colorBinary[1], 2), Integer.parseInt(colorBinary[2], 2));
     }
 
     private static void ReplacePixelsInNewBufferedImage(Pixel[] newPixels, BufferedImage newImage) {
-        for(int i = 0; i < newPixels.length; i++) {
-            newImage.setRGB(newPixels[i].getX(), newPixels[i].getY(), newPixels[i].getColor().getRGB());
+        for (Pixel newPixel : newPixels) {
+            newImage.setRGB(newPixel.getX(), newPixel.getY(), newPixel.getColor().getRGB());
         }
     }
 

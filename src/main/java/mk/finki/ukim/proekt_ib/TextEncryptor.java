@@ -7,20 +7,12 @@ import java.nio.charset.StandardCharsets;
 import java.security.Signature;
 import java.util.Base64;
 
-/*
-Source: https://www.tutorialspoint.com/java_cryptography/java_cryptography_encrypting_data.htm
-
-I modified it so that I will use symmetric encryption aka AES instead of RSA encryption because I want to encrypt larger data.
-RSA encryption will be useful to securely exchange the symmetric encryption key.
-
-Also, I modified it so that I use Base64 encoding, so that the encrypted message contains only characters that are within the
-ASCII range
-*/
 
 public class TextEncryptor {
-    public static void CreatingASignatureObject() throws Exception{
+    public static void CreatingASignatureObject() throws Exception {
         Signature sign = Signature.getInstance("SHA256withRSA");
     }
+
     public SecretKey generateAESKey() throws Exception {
         KeyGenerator keyGen = KeyGenerator.getInstance("AES");
         keyGen.init(256);
@@ -37,7 +29,6 @@ public class TextEncryptor {
         byte[] inputBytes = input.getBytes(StandardCharsets.UTF_8);
         byte[] encryptedBytes = cipher.doFinal(inputBytes);
 
-        String encryptedBase64 = Base64.getEncoder().encodeToString(encryptedBytes);
-        return encryptedBase64;
+        return Base64.getEncoder().encodeToString(encryptedBytes);
     }
 }

@@ -9,9 +9,6 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 
-    /*
-    Source: https://www.youtube.com/watch?v=e4xphUB0Ptg
-    */
 
 public class ExtractLSB {
     public static void Extract(String newImageFileString, SecretKey secretKey, Cipher cipher) throws Exception {
@@ -44,12 +41,12 @@ public class ExtractLSB {
         return pixels;
     }
 
-    private static String ExtractMessageFromPixels(Pixel[] pixels) { //all pixels. Select all pixels with a message until we the pixel that means end
+    private static String ExtractMessageFromPixels(Pixel[] pixels) {
         boolean completed = false;
         int pixelArrayIndex = 0;
-        StringBuilder messageBuilder = new StringBuilder("");
-        while(!completed) { //untill we get all characters
-            Pixel[] pixelsToRead = new Pixel[3]; // three pixels
+        StringBuilder messageBuilder = new StringBuilder();
+        while(!completed) {
+            Pixel[] pixelsToRead = new Pixel[3];
             for(int i = 0; i < 3; i++) {
                 pixelsToRead[i] = pixels[pixelArrayIndex];
                 pixelArrayIndex++;
@@ -62,14 +59,14 @@ public class ExtractLSB {
         return messageBuilder.toString();
     }
 
-    private static char ConvertPixelsToCharacter(Pixel[] pixelsToRead) { // 3 pixels with message
-        ArrayList<String> binaryValues = new ArrayList<String>();
-        for(int i = 0; i < pixelsToRead.length; i++) {
-            String[] currentBinary = TurnPixelIntegersToBinary(pixelsToRead[i]); // every pixel is turned is array of R G and B value
+    private static char ConvertPixelsToCharacter(Pixel[] pixelsToRead) {
+        ArrayList<String> binaryValues = new ArrayList<>();
+        for (Pixel pixel : pixelsToRead) {
+            String[] currentBinary = TurnPixelIntegersToBinary(pixel);
 
-            binaryValues.add(currentBinary[0]); //add R to binaryValues
-            binaryValues.add(currentBinary[1]); //add G to binaryValues
-            binaryValues.add(currentBinary[2]); //add B to binaryValues ...until all 3 pixels are passed
+            binaryValues.add(currentBinary[0]);
+            binaryValues.add(currentBinary[1]);
+            binaryValues.add(currentBinary[2]);
         }
         return ConvertBinaryValuesToCharacter(binaryValues);
     }
@@ -83,19 +80,16 @@ public class ExtractLSB {
     }
 
     private static boolean IsEndOfMessage(Pixel pixel) {
-        if(TurnPixelIntegersToBinary(pixel)[2].endsWith("1")) {
-            return false;
-        }
-        return true;
+        return !TurnPixelIntegersToBinary(pixel)[2].endsWith("1");
     }
 
-    private static char ConvertBinaryValuesToCharacter(ArrayList<String> binaryValues) { //array of all R G Bs of 3 pixels
-        StringBuilder endBinary = new StringBuilder("");
+    private static char ConvertBinaryValuesToCharacter(ArrayList<String> binaryValues) {
+        StringBuilder endBinary = new StringBuilder();
         for(int i = 0; i < binaryValues.size()-1; i++) {
-            endBinary.append(binaryValues.get(i).charAt(binaryValues.get(i).length()-1)); // get the last bit of every R G and B
+            endBinary.append(binaryValues.get(i).charAt(binaryValues.get(i).length()-1));
         }
         String endBinaryString = endBinary.toString();
-        String noZeros = RemovePaddedZeros(endBinaryString); //remove zeros
+        String noZeros = RemovePaddedZeros(endBinaryString);
         int ascii = Integer.parseInt(noZeros, 2);
         return (char) ascii;
     }

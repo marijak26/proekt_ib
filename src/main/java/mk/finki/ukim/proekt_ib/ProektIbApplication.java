@@ -14,7 +14,7 @@ import java.util.Scanner;
 @SpringBootApplication
 public class ProektIbApplication {
 
-    private static EmailService emailService; // Spring bean
+    private static EmailService emailService;
 
     public static void main(String[] args) throws Exception {
         ApplicationContext context = SpringApplication.run(ProektIbApplication.class, args);
@@ -29,7 +29,7 @@ public class ProektIbApplication {
             System.out.println("What message would you like to hide?");
             String message = myObj.nextLine();
 
-            System.out.println("Where is your image located? (eg. pictures/image.png)");
+            System.out.println("Where is your image located?");
             String input_path = myObj.nextLine();
 
             System.out.println("Where would you like to save the output image?");
@@ -86,8 +86,8 @@ public class ProektIbApplication {
 
             emailService.sendMessageWithAttachment(
                     toImage,
-                    "🖼️ Stego Image",
-                    "Hi,\n\nHere’s the stego image. Use the separate email for the key.\n\n—App",
+                    "🖼️ Image with hidden message",
+                    "Hi,\n\nHere’s the image with the hidden message. Use the separate email for the key.\n\n—App",
                     new File(output_path)
             );
 
