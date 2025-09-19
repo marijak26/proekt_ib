@@ -7,6 +7,7 @@ import org.springframework.context.ApplicationContext;
 import javax.crypto.Cipher;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
+import java.awt.image.BufferedImage;
 import java.io.File;
 import java.util.Arrays;
 import java.util.Scanner;
@@ -21,7 +22,7 @@ public class ProektIbApplication {
         emailService = context.getBean(EmailService.class);
 
         Scanner myObj = new Scanner(System.in);
-        System.out.println("What would you like to do?(A/B)\nA:Write a hidden message to an image.\nB:Read a hidden message from an image");
+        System.out.println("What would you like to do?(A/B)\nA:Write a hidden message to an image.\nB:Extract a hidden message from an image");
 
         String action = myObj.nextLine();
 
@@ -32,10 +33,8 @@ public class ProektIbApplication {
             System.out.println("Where is your image located?");
             String input_path = myObj.nextLine();
 
-            System.out.println("Where would you like to save the output image?");
-            String output_path = myObj.nextLine();
+            generateImage(message, input_path);
 
-            generateImage(message, input_path, output_path);
         } else if (action.equalsIgnoreCase("B")) {
             System.out.println("Enter the secret keys with []:");
             String input = myObj.nextLine();
@@ -57,7 +56,7 @@ public class ProektIbApplication {
         }
     }
 
-    public static void generateImage(String message, String input_path, String output_path) throws Exception {
+    public static void generateImage(String message, String input_path) throws Exception {
         File imageFile = new File(input_path);
         TextEncryptor textEncryptor = new TextEncryptor();
         SecretKey key = textEncryptor.generateAESKey();
@@ -65,13 +64,9 @@ public class ProektIbApplication {
         byte[] secretKeyBytes = key.getEncoded();
 
         String encryptedText = textEncryptor.encrypt(message, key, cipher);
-        if (imageFile != null) {
-            EmbedLSB.Embed(imageFile, encryptedText, output_path);
-            System.out.println("Message hidden successfully!");
-        }
 
-        System.out.println("SecretKey (byte array): " + Arrays.toString(secretKeyBytes));
-        System.out.println("Cipher: AES");
+        BufferedImage stegoImage = EmbedLSB.embedToImage(imageFile, encryptedText);
+        System.out.println("Message hidden successfully!");
 
         Scanner sc = new Scanner(System.in);
         System.out.println("Send results by email? (Y/N)");
@@ -85,16 +80,18 @@ public class ProektIbApplication {
                     "Secret key bytes: " + Arrays.toString(secretKeyBytes) + "\n\n" +
                     "Use this info to extract the message from the image.";
 
-            emailService.sendMessageWithAttachment(
+            emailService.sendImageAttachment(
                     recipient,
                     "Image with hidden message + Key Info",
                     "Hi,\n\nHere’s the image with the hidden message.\n\n" + keyInfo + "\n\n—App",
-                    new File(output_path)
+                    stegoImage,
+                    "hidden.png"
             );
 
-            System.out.println("Email sent successfully!");
+            System.out.println("Email sent successfully! Download the image from your email so you can extract the message later.");
         }
     }
+
 
     public static void extractText(byte[] secretKeyBytes, String output_path, String cipher_algorithm) throws Exception {
         SecretKey receivedSecretKey = new SecretKeySpec(secretKeyBytes, cipher_algorithm);

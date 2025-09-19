@@ -13,9 +13,7 @@ public class TextDecryptor {
             byte[] cipherBytes = Base64.getDecoder().decode(base64CipherText);
             byte[] decryptedBytes = cipher.doFinal(cipherBytes);
             return new String(decryptedBytes, StandardCharsets.UTF_8);
-        }
-        catch (Exception e)
-        {
+        } catch (Exception e) {
             System.out.println("No hidden message");
         }
 

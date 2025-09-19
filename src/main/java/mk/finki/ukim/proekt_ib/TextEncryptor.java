@@ -4,14 +4,10 @@ import javax.crypto.Cipher;
 import javax.crypto.KeyGenerator;
 import javax.crypto.SecretKey;
 import java.nio.charset.StandardCharsets;
-import java.security.Signature;
 import java.util.Base64;
 
 
 public class TextEncryptor {
-    public static void CreatingASignatureObject() throws Exception {
-        Signature sign = Signature.getInstance("SHA256withRSA");
-    }
 
     public SecretKey generateAESKey() throws Exception {
         KeyGenerator keyGen = KeyGenerator.getInstance("AES");

@@ -1,14 +1,17 @@
 package mk.finki.ukim.proekt_ib;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.io.FileSystemResource;
+import org.springframework.core.io.ByteArrayResource;
+import org.springframework.core.io.InputStreamSource;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 
-import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
-import java.io.File;
+
+import javax.imageio.ImageIO;
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayOutputStream;
 
 @Service
 public class EmailService {
@@ -16,17 +19,25 @@ public class EmailService {
     @Autowired
     private JavaMailSender mailSender;
 
-    public void sendMessageWithAttachment(String to, String subject, String text, File file) throws MessagingException {
-        MimeMessage message = mailSender.createMimeMessage();
-        MimeMessageHelper helper = new MimeMessageHelper(message, true);
+    public void sendImageAttachment(String to, String subject, String text, BufferedImage image, String filename) {
+        try {
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            ImageIO.write(image, "png", baos);
+            byte[] imageBytes = baos.toByteArray();
+            InputStreamSource attachment = new ByteArrayResource(imageBytes);
 
-        helper.setTo(to);
-        helper.setSubject(subject);
-        helper.setText(text);
+            MimeMessage message = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true);
 
-        FileSystemResource fileResource = new FileSystemResource(file);
-        helper.addAttachment(file.getName(), fileResource);
+            helper.setTo(to);
+            helper.setSubject(subject);
+            helper.setText(text);
 
-        mailSender.send(message);
+            helper.addAttachment(filename, attachment);
+
+            mailSender.send(message);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 }

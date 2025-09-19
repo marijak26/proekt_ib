@@ -19,20 +19,20 @@ public class ExtractLSB {
             image = ImageIO.read(newImageFile);
             Pixel[] pixels = GetPixelArray(image);
             String message = ExtractMessageFromPixels(pixels);
-            System.out.println("Message: "+textDecryptor.decrypt(message, secretKey, cipher));
+            System.out.println("Message: " + textDecryptor.decrypt(message, secretKey, cipher));
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
 
-    private static Pixel[] GetPixelArray(BufferedImage bufferedImage){
+    private static Pixel[] GetPixelArray(BufferedImage bufferedImage) {
         int height = bufferedImage.getHeight();
         int width = bufferedImage.getWidth();
         Pixel[] pixels = new Pixel[height * width];
 
         int count = 0;
-        for(int x = 0; x < width; x++) {
-            for(int y = 0; y < height; y++) {
+        for (int x = 0; x < width; x++) {
+            for (int y = 0; y < height; y++) {
                 Color colorToAdd = new Color(bufferedImage.getRGB(x, y));
                 pixels[count] = new Pixel(x, y, colorToAdd);
                 count++;
@@ -45,14 +45,14 @@ public class ExtractLSB {
         boolean completed = false;
         int pixelArrayIndex = 0;
         StringBuilder messageBuilder = new StringBuilder();
-        while(!completed) {
+        while (!completed) {
             Pixel[] pixelsToRead = new Pixel[3];
-            for(int i = 0; i < 3; i++) {
+            for (int i = 0; i < 3; i++) {
                 pixelsToRead[i] = pixels[pixelArrayIndex];
                 pixelArrayIndex++;
             }
             messageBuilder.append(ConvertPixelsToCharacter(pixelsToRead));
-            if(IsEndOfMessage(pixelsToRead[2])) {
+            if (IsEndOfMessage(pixelsToRead[2])) {
                 completed = true;
             }
         }
@@ -85,8 +85,8 @@ public class ExtractLSB {
 
     private static char ConvertBinaryValuesToCharacter(ArrayList<String> binaryValues) {
         StringBuilder endBinary = new StringBuilder();
-        for(int i = 0; i < binaryValues.size()-1; i++) {
-            endBinary.append(binaryValues.get(i).charAt(binaryValues.get(i).length()-1));
+        for (int i = 0; i < binaryValues.size() - 1; i++) {
+            endBinary.append(binaryValues.get(i).charAt(binaryValues.get(i).length() - 1));
         }
         String endBinaryString = endBinary.toString();
         String noZeros = RemovePaddedZeros(endBinaryString);
@@ -97,15 +97,14 @@ public class ExtractLSB {
     private static String RemovePaddedZeros(String endBinary) {
         StringBuilder builder = new StringBuilder(endBinary);
         int paddedZeros = 0;
-        for(int i = 0; i < builder.length(); i++) {
-            if(builder.charAt(i) == '0') {
+        for (int i = 0; i < builder.length(); i++) {
+            if (builder.charAt(i) == '0') {
                 paddedZeros++;
-            }
-            else {
+            } else {
                 break;
             }
         }
-        for(int i = 0 ; i < paddedZeros; i++) {
+        for (int i = 0; i < paddedZeros; i++) {
             builder.deleteCharAt(0);
         }
         return builder.toString();
