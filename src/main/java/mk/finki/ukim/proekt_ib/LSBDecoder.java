@@ -10,16 +10,16 @@ import java.io.IOException;
 import java.util.ArrayList;
 
 
-public class ExtractLSB {
+public class LSBDecoder {
     public static void Extract(String newImageFileString, SecretKey secretKey, Cipher cipher) throws Exception {
         File newImageFile = new File(newImageFileString);
         BufferedImage image;
-        TextDecryptor textDecryptor = new TextDecryptor();
+        AESTextDecryptor AESTextDecryptor = new AESTextDecryptor();
         try {
             image = ImageIO.read(newImageFile);
             Pixel[] pixels = GetPixelArray(image);
             String message = ExtractMessageFromPixels(pixels);
-            System.out.println("Message: " + textDecryptor.decrypt(message, secretKey, cipher));
+            System.out.println("Message: " + AESTextDecryptor.decrypt(message, secretKey, cipher));
         } catch (IOException e) {
             e.printStackTrace();
         }

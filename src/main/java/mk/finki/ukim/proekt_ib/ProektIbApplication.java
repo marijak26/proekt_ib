@@ -58,14 +58,14 @@ public class ProektIbApplication {
 
     public static void generateImage(String message, String input_path) throws Exception {
         File imageFile = new File(input_path);
-        TextEncryptor textEncryptor = new TextEncryptor();
-        SecretKey key = textEncryptor.generateAESKey();
-        Cipher cipher = textEncryptor.getCipher();
+        AESTextEncryptor AESTextEncryptor = new AESTextEncryptor();
+        SecretKey key = AESTextEncryptor.generateAESKey();
+        Cipher cipher = AESTextEncryptor.getCipher();
         byte[] secretKeyBytes = key.getEncoded();
 
-        String encryptedText = textEncryptor.encrypt(message, key, cipher);
+        String encryptedText = AESTextEncryptor.encrypt(message, key, cipher);
 
-        BufferedImage stegoImage = EmbedLSB.embedToImage(imageFile, encryptedText);
+        BufferedImage stegoImage = LSBEncoder.embedToImage(imageFile, encryptedText);
         System.out.println("Message hidden successfully!");
 
         Scanner sc = new Scanner(System.in);
@@ -97,6 +97,6 @@ public class ProektIbApplication {
         SecretKey receivedSecretKey = new SecretKeySpec(secretKeyBytes, cipher_algorithm);
         Cipher receivedCipher = Cipher.getInstance(cipher_algorithm);
         receivedCipher.init(Cipher.DECRYPT_MODE, receivedSecretKey);
-        ExtractLSB.Extract(output_path, receivedSecretKey, receivedCipher);
+        LSBDecoder.Extract(output_path, receivedSecretKey, receivedCipher);
     }
 }

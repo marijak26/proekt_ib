@@ -6,7 +6,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 
 
-public class TextDecryptor {
+public class AESTextDecryptor {
     public String decrypt(String base64CipherText, SecretKey secretKey, Cipher cipher) throws Exception {
         cipher.init(Cipher.DECRYPT_MODE, secretKey);
         try {

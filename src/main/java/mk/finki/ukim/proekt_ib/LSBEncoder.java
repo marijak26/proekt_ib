@@ -8,7 +8,7 @@ import java.awt.image.WritableRaster;
 import java.io.File;
 import java.io.IOException;
 
-public class EmbedLSB {
+public class LSBEncoder {
     public static BufferedImage embedToImage(File imageFile, String message) {
         try {
             BufferedImage image = ImageIO.read(imageFile);
