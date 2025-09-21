@@ -71,7 +71,6 @@ public class LSBEncoder {
                     setLSB(group[i].getColor().getBlue(), chunk[2])
             ));
         }
-// last pixel marks end of message
         char[] lastChunk = {bits.charAt(bitIndex++), bits.charAt(bitIndex++), lastChar ? '0' : '1'};
         group[2].setColor(new Color(
                 setLSB(group[2].getColor().getRed(), lastChunk[0]),
