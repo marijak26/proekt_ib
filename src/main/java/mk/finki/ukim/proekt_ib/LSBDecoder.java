@@ -1,5 +1,6 @@
 package mk.finki.ukim.proekt_ib;
 
+
 import javax.crypto.Cipher;
 import javax.crypto.SecretKey;
 import javax.imageio.ImageIO;
@@ -11,102 +12,69 @@ import java.util.ArrayList;
 
 
 public class LSBDecoder {
-    public static void Extract(String newImageFileString, SecretKey secretKey, Cipher cipher) throws Exception {
-        File newImageFile = new File(newImageFileString);
-        BufferedImage image;
-        AESTextDecryptor AESTextDecryptor = new AESTextDecryptor();
+
+
+    public static void extract(String imagePath, SecretKey secretKey, Cipher cipher) throws Exception {
+        BufferedImage image = ImageIO.read(new File(imagePath));
+        Pixel[] pixels = toPixelArray(image);
+        String hidden = extractMessage(pixels);
         try {
-            image = ImageIO.read(newImageFile);
-            Pixel[] pixels = GetPixelArray(image);
-            String message = ExtractMessageFromPixels(pixels);
-            System.out.println("Message: " + AESTextDecryptor.decrypt(message, secretKey, cipher));
-        } catch (IOException e) {
-            e.printStackTrace();
+            String decrypted = AESCryptoUtil.decrypt(hidden, secretKey, cipher);
+            System.out.println("Message: " + decrypted);
+        } catch (Exception e) {
+            System.out.println("No hidden message or wrong key.");
         }
     }
 
-    private static Pixel[] GetPixelArray(BufferedImage bufferedImage) {
-        int height = bufferedImage.getHeight();
-        int width = bufferedImage.getWidth();
-        Pixel[] pixels = new Pixel[height * width];
 
-        int count = 0;
+    private static Pixel[] toPixelArray(BufferedImage image) {
+        int width = image.getWidth();
+        int height = image.getHeight();
+        Pixel[] pixels = new Pixel[width * height];
+        int index = 0;
         for (int x = 0; x < width; x++) {
             for (int y = 0; y < height; y++) {
-                Color colorToAdd = new Color(bufferedImage.getRGB(x, y));
-                pixels[count] = new Pixel(x, y, colorToAdd);
-                count++;
+                pixels[index++] = new Pixel(x, y, new Color(image.getRGB(x, y)));
             }
         }
         return pixels;
     }
 
-    private static String ExtractMessageFromPixels(Pixel[] pixels) {
-        boolean completed = false;
-        int pixelArrayIndex = 0;
-        StringBuilder messageBuilder = new StringBuilder();
-        while (!completed) {
-            Pixel[] pixelsToRead = new Pixel[3];
-            for (int i = 0; i < 3; i++) {
-                pixelsToRead[i] = pixels[pixelArrayIndex];
-                pixelArrayIndex++;
-            }
-            messageBuilder.append(ConvertPixelsToCharacter(pixelsToRead));
-            if (IsEndOfMessage(pixelsToRead[2])) {
-                completed = true;
-            }
+
+    private static String extractMessage(Pixel[] pixels) {
+        StringBuilder sb = new StringBuilder();
+        int index = 0;
+        boolean done = false;
+        while (!done) {
+            Pixel[] group = {pixels[index++], pixels[index++], pixels[index++]};
+            sb.append(toChar(group));
+            done = isEnd(group[2]);
         }
-        return messageBuilder.toString();
+        return sb.toString();
     }
 
-    private static char ConvertPixelsToCharacter(Pixel[] pixelsToRead) {
-        ArrayList<String> binaryValues = new ArrayList<>();
-        for (Pixel pixel : pixelsToRead) {
-            String[] currentBinary = TurnPixelIntegersToBinary(pixel);
 
-            binaryValues.add(currentBinary[0]);
-            binaryValues.add(currentBinary[1]);
-            binaryValues.add(currentBinary[2]);
+    private static char toChar(Pixel[] group) {
+        ArrayList<Character> bits = new ArrayList<>();
+        for (Pixel p : group) {
+            bits.add(lastBit(p.getColor().getRed()));
+            bits.add(lastBit(p.getColor().getGreen()));
+            bits.add(lastBit(p.getColor().getBlue()));
         }
-        return ConvertBinaryValuesToCharacter(binaryValues);
-    }
-
-    private static String[] TurnPixelIntegersToBinary(Pixel pixel) {
-        String[] values = new String[3];
-        values[0] = Integer.toBinaryString(pixel.getColor().getRed());
-        values[1] = Integer.toBinaryString(pixel.getColor().getGreen());
-        values[2] = Integer.toBinaryString(pixel.getColor().getBlue());
-        return values;
-    }
-
-    private static boolean IsEndOfMessage(Pixel pixel) {
-        return !TurnPixelIntegersToBinary(pixel)[2].endsWith("1");
-    }
-
-    private static char ConvertBinaryValuesToCharacter(ArrayList<String> binaryValues) {
-        StringBuilder endBinary = new StringBuilder();
-        for (int i = 0; i < binaryValues.size() - 1; i++) {
-            endBinary.append(binaryValues.get(i).charAt(binaryValues.get(i).length() - 1));
-        }
-        String endBinaryString = endBinary.toString();
-        String noZeros = RemovePaddedZeros(endBinaryString);
-        int ascii = Integer.parseInt(noZeros, 2);
+        String bitString = bits.subList(0, bits.size() - 1).stream()
+                .map(String::valueOf)
+                .reduce("", String::concat);
+        int ascii = Integer.parseInt(bitString, 2);
         return (char) ascii;
     }
 
-    private static String RemovePaddedZeros(String endBinary) {
-        StringBuilder builder = new StringBuilder(endBinary);
-        int paddedZeros = 0;
-        for (int i = 0; i < builder.length(); i++) {
-            if (builder.charAt(i) == '0') {
-                paddedZeros++;
-            } else {
-                break;
-            }
-        }
-        for (int i = 0; i < paddedZeros; i++) {
-            builder.deleteCharAt(0);
-        }
-        return builder.toString();
+
+    private static char lastBit(int value) {
+        return Integer.toBinaryString(value).charAt(Integer.toBinaryString(value).length() - 1);
+    }
+
+
+    private static boolean isEnd(Pixel pixel) {
+        return lastBit(pixel.getColor().getBlue()) == '0';
     }
 }

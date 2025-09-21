@@ -1,102 +1,90 @@
 package mk.finki.ukim.proekt_ib;
 
+
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.ApplicationContext;
 
+
 import javax.crypto.Cipher;
 import javax.crypto.SecretKey;
-import javax.crypto.spec.SecretKeySpec;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.util.Arrays;
 import java.util.Scanner;
 
+
 @SpringBootApplication
 public class ProektIbApplication {
 
+
     private static EmailService emailService;
+
 
     public static void main(String[] args) throws Exception {
         ApplicationContext context = SpringApplication.run(ProektIbApplication.class, args);
         emailService = context.getBean(EmailService.class);
 
-        Scanner myObj = new Scanner(System.in);
-        System.out.println("What would you like to do?(A/B)\nA:Write a hidden message to an image.\nB:Extract a hidden message from an image");
 
-        String action = myObj.nextLine();
+        Scanner sc = new Scanner(System.in);
+        System.out.println("Choose action (A/B):\nA: Hide a message in an image\nB: Extract a hidden message");
+        String action = sc.nextLine();
+
 
         if (action.equalsIgnoreCase("A")) {
-            System.out.println("What message would you like to hide?");
-            String message = myObj.nextLine();
-
-            System.out.println("Where is your image located?");
-            String input_path = myObj.nextLine();
-
-            generateImage(message, input_path);
-
+            System.out.println("Enter the message:");
+            String msg = sc.nextLine();
+            System.out.println("Enter image path:");
+            String path = sc.nextLine();
+            generateImage(msg, path);
         } else if (action.equalsIgnoreCase("B")) {
-            System.out.println("Enter the secret keys with []:");
-            String input = myObj.nextLine();
-            String[] byteStrings = input.substring(1, input.length() - 1).split(", ");
-            byte[] secretKeyBytes = new byte[byteStrings.length];
-            for (int i = 0; i < byteStrings.length; i++) {
-                secretKeyBytes[i] = Byte.parseByte(byteStrings[i]);
+            System.out.println("Enter secret key bytes (format: [1,2,3,...]):");
+            String input = sc.nextLine();
+            String[] parts = input.substring(1, input.length() - 1).split(", ");
+            byte[] keyBytes = new byte[parts.length];
+            for (int i = 0; i < parts.length; i++) {
+                keyBytes[i] = Byte.parseByte(parts[i].trim());
             }
 
-            System.out.println("Enter the location of the image:");
-            String output_path = myObj.nextLine();
 
-            System.out.println("Enter the cipher algorithm. (e.g., AES)");
-            String cipher_algorithm = myObj.nextLine();
 
-            extractText(secretKeyBytes, output_path, cipher_algorithm);
+            System.out.println("Enter image path:");
+            String imgPath = sc.nextLine();
+            extractText(keyBytes, imgPath, "AES");
         } else {
             System.out.println("Invalid input!");
         }
     }
 
-    public static void generateImage(String message, String input_path) throws Exception {
-        File imageFile = new File(input_path);
-        AESTextEncryptor AESTextEncryptor = new AESTextEncryptor();
-        SecretKey key = AESTextEncryptor.generateAESKey();
-        Cipher cipher = AESTextEncryptor.getCipher();
-        byte[] secretKeyBytes = key.getEncoded();
 
-        String encryptedText = AESTextEncryptor.encrypt(message, key, cipher);
+    private static void generateImage(String message, String inputPath) throws Exception {
+        File imageFile = new File(inputPath);
+        SecretKey key = AESCryptoUtil.generateKey(256);
+        Cipher cipher = AESCryptoUtil.getCipher("AES");
 
-        BufferedImage stegoImage = LSBEncoder.embedToImage(imageFile, encryptedText);
+
+        String encrypted = AESCryptoUtil.encrypt(message, key, cipher);
+        BufferedImage stego = LSBEncoder.embedToImage(imageFile, encrypted);
         System.out.println("Message hidden successfully!");
+
 
         Scanner sc = new Scanner(System.in);
         System.out.println("Send results by email? (Y/N)");
-        String choice = sc.nextLine();
-
-        if (choice.equalsIgnoreCase("Y")) {
-            System.out.println("Recipient email for IMAGE + KEY INFO:");
+        if (sc.nextLine().equalsIgnoreCase("Y")) {
+            System.out.println("Recipient email:");
             String recipient = sc.nextLine();
+            String info = "Cipher: AES\nKey bytes: " + Arrays.toString(key.getEncoded());
 
-            String keyInfo = "Cipher algorithm: AES\n" +
-                    "Secret key bytes: " + Arrays.toString(secretKeyBytes) + "\n\n" +
-                    "Use this info to extract the message from the image.";
 
-            emailService.sendImageAttachment(
-                    recipient,
-                    "Image with hidden message + Key Info",
-                    "Hi,\n\nHere’s the image with the hidden message.\n\n" + keyInfo + "\n\n—App",
-                    stegoImage,
-                    "hidden.png"
-            );
-
-            System.out.println("Email sent successfully! Download the image from your email so you can extract the message later.");
+            emailService.sendImage(recipient, "Stego Image + Key", info, stego, "hidden.png");
+            System.out.println("Email sent!");
         }
     }
 
 
-    public static void extractText(byte[] secretKeyBytes, String output_path, String cipher_algorithm) throws Exception {
-        SecretKey receivedSecretKey = new SecretKeySpec(secretKeyBytes, cipher_algorithm);
-        Cipher receivedCipher = Cipher.getInstance(cipher_algorithm);
-        receivedCipher.init(Cipher.DECRYPT_MODE, receivedSecretKey);
-        LSBDecoder.Extract(output_path, receivedSecretKey, receivedCipher);
+    private static void extractText(byte[] keyBytes, String path, String algo) throws Exception {
+        SecretKey key = AESCryptoUtil.fromBytes(keyBytes, algo);
+        Cipher cipher = AESCryptoUtil.getCipher(algo);
+        LSBDecoder.extract(path, key, cipher);
     }
 }
