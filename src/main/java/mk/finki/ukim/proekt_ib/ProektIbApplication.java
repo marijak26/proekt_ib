@@ -65,7 +65,12 @@ public class ProektIbApplication {
 
         String encrypted = AESCryptoUtil.encrypt(message, key, cipher);
         BufferedImage stego = LSBEncoder.embedToImage(imageFile, encrypted);
+
+        File outputFile = new File(imageFile.getParent(),"hidden.png");
+        javax.imageio.ImageIO.write(stego, "png", outputFile);
+
         System.out.println("Message hidden successfully!");
+        System.out.println("Key bytes: " + Arrays.toString(key.getEncoded()));
 
 
         Scanner sc = new Scanner(System.in);
